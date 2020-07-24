@@ -1,6 +1,26 @@
 import csv
+import matplotlib.pyplot as plt
 
-# Helper function to generate per gender character probabilities 
+# Using strategy to see if work sequences are recurring in names for Male vs Female
+# def gender_word_break_dict(data):
+#   total_words = 0
+#   name_dict = {}
+#   for name in data:
+#     total_words += 1
+#     tracker = 0
+#     gap = 4
+#     while (tracker < len(name)):
+#       end = min(len(name), tracker+gap)
+#       chunk = name[tracker:end]  
+#       if chunk in name_dict:
+#         val = name_dict[chunk]
+#         name_dict[chunk] = val + 1
+#       else:
+#         name_dict[chunk] = 1
+#       tracker += gap
+#   return total_words, name_dict
+
+# Probability distribution based on character probability differences between M vs F
 def gender_char_dict(data):
   total_gender_chars = 0
   char_dict = {}
@@ -21,13 +41,11 @@ def gender_char_dict(data):
         char_dict[c] = adder
   return total_gender_chars, char_dict
 
-
 train_male = []
 train_female = []
 test_data = []
 
-
-# Reading data from file
+# Reading data from csv
 with open('allnames.tsv', 'r', encoding="utf-8") as tsvfile:
   reader = csv.DictReader(tsvfile, dialect='excel-tab')
   for row in reader:
@@ -35,7 +53,7 @@ with open('allnames.tsv', 'r', encoding="utf-8") as tsvfile:
     name = row['Person Name'].lower()
     test_train = row['Train/Test']
 
-    # Split into Test and Train
+    # Test Train split
     if test_train == 'Train':
       if gender == 'Male':
         train_male.append(name)
@@ -43,7 +61,6 @@ with open('allnames.tsv', 'r', encoding="utf-8") as tsvfile:
         train_female.append(name)
     else:
       test_data.append([name, gender])
-
 
 # To calculate length related disparity in names 
 # def avg_std_length(data):
@@ -62,10 +79,29 @@ with open('allnames.tsv', 'r', encoding="utf-8") as tsvfile:
 # avg_std_length(train_male)
 # avg_std_length(train_female)
 
+# Attempt to use names for probability distribution
+# total_male_names, male_name_dict = gender_word_break_dict(train_male)
+# total_female_names, female_name_dict = gender_word_break_dict(train_female)
+# P_name_male = {}
+# P_name_female = {}
+# name_set = set()
+# for c in male_name_dict.keys():
+#   P_name_male[c] = male_name_dict[c]/total_male_names
+#   name_set.add(c)
+# for c in female_name_dict.keys():
+#   P_name_female[c] = female_name_dict[c]/total_female_names
+#   name_set.add(c)
+
+# To see distribution of names between Male and Female 
+# male_keys = [k for k, v in P_name_male.items()][:1000]
+# male_vals = [v for k, v in P_name_male.items()][:1000]
+# plt.bar(range(len(male_vals)), male_vals, align='center')
+# plt.xticks(range(len(male_keys)), male_keys)
+# plt.show()
+
 
 # For naive bayes we know 
 # P(gender|specific char) = P(specific char|gender) * P(specific char) / P(gender)
-
 
 # P(specific char|gender) = number of times character seen in name / total characters in gender 
 total_male_chars, male_char_dict = gender_char_dict(train_male)
@@ -80,9 +116,7 @@ for c in female_char_dict.keys():
   P_char_female[c] = female_char_dict[c]/total_female_chars
   char_set.add(c)
 
-
 # To see distribution of characters between Male and Female 
-# import matplotlib.pyplot as plt
 # plt.bar(range(len(P_char_male)), P_char_male.values(), align='center')
 # plt.xticks(range(len(P_char_male)), list(P_char_male.keys()))
 # plt.figure()
@@ -117,7 +151,7 @@ P_female = len(train_female)/total_train
 TM = 0 # Correctly identified Male
 FM = 0 # Incorrectly identified Male
 TF = 0 # Correctly identified Female
-FF = 0 # Incorrectly identified Female
+FF = 0 # Inorrectly identified Female
 
 
 # P(gender|specific char) = P(specific char|gender) * P(specific char) / P(gender)
